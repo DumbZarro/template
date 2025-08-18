@@ -1,0 +1,85 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.4'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.graalvm.buildtools.native' version '0.10.6'
+}
+
+group = 'top.dumbzarro'
+version = '0.0.1-SNAPSHOT'
+description = 'template'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// 网络依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// 数据库依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
+	// https://mvnrepository.com/artifact/org.postgresql/postgresql
+	implementation 'org.postgresql:postgresql:42.7.7'
+
+	// 安全依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
+	implementation "org.springframework.boot:spring-boot-starter-validation"
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-oauth2-client
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+	implementation 'io.jsonwebtoken:jjwt:0.12.6'
+	// https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
+	implementation 'org.bouncycastle:bcpkix-jdk18on:1.80'
+
+	// 邮件依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// 监控依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	// https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus:1.15.3'
+
+	// 测试依赖
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// https://mvnrepository.com/artifact/org.mybatis.spring.boot/mybatis-spring-boot-starter-test
+	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
+	// https://mvnrepository.com/artifact/org.springframework.security/spring-security-test
+	testImplementation 'org.springframework.security:spring-security-test'
+	// https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+
+	// 编译依赖
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

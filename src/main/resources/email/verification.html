@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>验证您的邮箱</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #2c3e50;">验证您的邮箱地址</h2>
+        <p>您好！</p>
+        <p>感谢您注册我们的服务。请使用以下验证码完成邮箱验证：</p>
+        <div style="background-color: #f8f9fa; padding: 15px; margin: 20px 0; text-align: center;">
+            <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px;" th:text="${code}">123456</span>
+        </div>
+        <p>此验证码将在15分钟后失效。如果您没有请求此验证，请忽略此邮件。</p>
+        <p>祝您使用愉快！</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+        <p style="font-size: 12px; color: #666;">此邮件由系统自动发送，请勿回复。</p>
+    </div>
+</body>
+</html> 

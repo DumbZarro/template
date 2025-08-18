@@ -1,0 +1,88 @@
+server:
+  port: 9999
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: template
+  rsocket:
+    server:
+      port: 7000
+      transport: websocket # 前端不支持tcp
+  ai:
+    ollama:
+      embedding:
+        model: nomic-embed-text
+      chat:
+        options:
+          model: deepseek-r1:1.5b
+    vectorstore:
+      redis:
+        initialize-schema: true   # 启动时自动创建索引
+        prefix: vec_             # 向量键前缀
+        index: vector_db     # 向量数据库索引名
+  r2dbc:
+    username: test
+    password: 123456
+    url: r2dbc:postgresql://localhost:5432/postgres?ssl=false
+    name: postgres
+  data:
+    redis:
+      database: 0
+      timeout: 10s
+      port: 6379
+      host: localhost
+      password: 123456
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+  mail:
+    host: smtp.126.com
+    username: dumbzarro@126.com
+    password: VBrgTR8t9MV8Jz6Y
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - read:user
+              - user:email
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+springdoc:
+  swagger-ui:
+    path: /swagger
+    enabled: true
+#  show-actuator: true
+
+logging:
+  level:
+    org.springframework.r2dbc: debug
+    org.springframework.data.r2dbc: debug
+    org.postgresql: DEBUG
+    org.springframework.security: TRACE
+app:
+  jwt:
+    expirationMs: 3600000
+    jwkUri: https://localhost:8080/jwks
+    secret: a2b4c6d8e0f1g3h5i7j9k1l3m5n7o9p1
+  role:
+    defaultId: 123
