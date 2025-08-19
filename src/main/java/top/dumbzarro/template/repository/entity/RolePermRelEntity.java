@@ -1,9 +1,9 @@
 package top.dumbzarro.template.repository.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.Instant;
 
@@ -11,31 +11,31 @@ import java.time.Instant;
 @Table(name = "role_perm_rel")
 public class RolePermRelEntity {
     @Id
-    @Column("id")
+    @Column(name = "id")
     private Long id;
 
-    @Column("role_id")
+    @Column(name = "role_id")
     private Long roleId;
 
-    @Column("perm_id")
+    @Column(name = "perm_id")
     private Long permId;
 
-    @Column("perm_code")
+    @Column(name = "perm_code")
     private String permCode;
 
-    @Column("sys_created_by")
+    @Column(name = "sys_created_by")
     private String sysCreatedBy;
 
-    @Column("sys_updated_by")
+    @Column(name = "sys_updated_by")
     private String sysUpdatedBy;
 
-    @Column("sys_created_time")
+    @Column(name = "sys_created_time")
     private Instant sysCreatedTime;
 
-    @Column("sys_updated_time")
+    @Column(name = "sys_updated_time")
     private Instant sysUpdatedTime;
 
-    @Column("sys_deleted")
+    @Column(name = "sys_deleted")
     private Boolean sysDeleted;
 
 

@@ -6,27 +6,14 @@ spring:
       enabled: true
   application:
     name: template
-  rsocket:
-    server:
-      port: 7000
-      transport: websocket # 前端不支持tcp
-  ai:
-    ollama:
-      embedding:
-        model: nomic-embed-text
-      chat:
-        options:
-          model: deepseek-r1:1.5b
-    vectorstore:
-      redis:
-        initialize-schema: true   # 启动时自动创建索引
-        prefix: vec_             # 向量键前缀
-        index: vector_db     # 向量数据库索引名
-  r2dbc:
-    username: test
-    password: 123456
-    url: r2dbc:postgresql://localhost:5432/postgres?ssl=false
-    name: postgres
+  jpa:
+    show-sql: true
+  datasource:
+    hikari:
+      username: test
+      password: 123456
+      jdbc-url: jdbc:postgresql://localhost:5432/postgres?ssl=false
+      pool-name: postgres
   data:
     redis:
       database: 0
@@ -71,12 +58,12 @@ springdoc:
   swagger-ui:
     path: /swagger
     enabled: true
-#  show-actuator: true
+  show-actuator: true
 
 logging:
   level:
-    org.springframework.r2dbc: debug
-    org.springframework.data.r2dbc: debug
+    org.springframework.jdbc: debug
+    org.springframework.data.jpa: debug
     org.postgresql: DEBUG
     org.springframework.security: TRACE
 app:

@@ -1,33 +1,34 @@
 package top.dumbzarro.template.domain.security.jwt;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.NonceExpiredException;
-import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 @Component
-public class JwtAuthenticationEntryPoint implements ServerAuthenticationEntryPoint {
+public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
     @Override
-    public Void> commence(ServerWebExchange exchange, AuthenticationException e) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         String errorMessage;
-        if (e instanceof NonceExpiredException) {
+        if (authException instanceof NonceExpiredException) {
             errorMessage = "Token已过期，请重新登录";
-        } else if (e instanceof BadCredentialsException) {
-            errorMessage = "Token无效：" + e.getMessage();
+        } else if (authException instanceof BadCredentialsException) {
+            errorMessage = "Token无效：" + authException.getMessage();
         } else {
-            errorMessage = "认证失败：" + e.getMessage();
+            errorMessage = "认证失败：" + authException.getMessage();
         }
 
-        String body = String.format("{\"code\":401,\"msg\":\"%s\"}", errorMessage);
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory().wrap(body.getBytes())));
+//        String body = String.format("{\"code\":401,\"msg\":\"%s\"}", errorMessage);
+//        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+//                .bufferFactory().wrap(body.getBytes())));
     }
 }

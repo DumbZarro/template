@@ -1,19 +1,18 @@
 package top.dumbzarro.template.repository.postgre;
 
-import top.dumbzarro.template.repository.entity.PermEntity;
-import org.springframework.data.r2dbc.repository.Query;
-import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.Param;
-import reactor.core.publisher.Flux;
+import top.dumbzarro.template.repository.entity.PermEntity;
 
 import java.util.List;
 
-public interface PermRepository extends R2dbcRepository<PermEntity, Long> {
-    @Query("""
+public interface PermRepository extends JpaRepository<PermEntity, Long> {
+    @NativeQuery("""
             SELECT *
             from perm
             WHERE id IN (collation for :permsIds);
             """)
-    Flux<PermEntity> queryByPermIds(@Param("permsIds") List<Long> permsIds);
+    PermEntity queryByPermIds(@Param("permsIds") List<Long> permsIds);
 
 }

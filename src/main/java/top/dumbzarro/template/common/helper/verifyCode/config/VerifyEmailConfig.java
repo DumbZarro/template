@@ -1,12 +1,11 @@
 package top.dumbzarro.template.common.helper.verifyCode.config;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
 import top.dumbzarro.template.common.constant.RedisConstant;
-import top.dumbzarro.template.common.constant.TimeConstant;
 import top.dumbzarro.template.common.helper.verifyCode.VerifyCodeConfig;
 import top.dumbzarro.template.common.util.TimeUtil;
 import top.dumbzarro.template.config.AppConfig;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 

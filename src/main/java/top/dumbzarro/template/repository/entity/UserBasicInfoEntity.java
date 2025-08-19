@@ -1,12 +1,12 @@
 package top.dumbzarro.template.repository.entity;
 
-import top.dumbzarro.template.common.biz.BizEnum;
-import top.dumbzarro.template.common.biz.BizException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import top.dumbzarro.template.common.biz.BizEnum;
+import top.dumbzarro.template.common.biz.BizException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -14,40 +14,40 @@ import java.util.Map;
 import java.util.Objects;
 
 @Data
-@Table("user_basic_info")
+@Table(name = "user_basic_info")
 public class UserBasicInfoEntity {
     @Id
-    @Column("id")
+    @Column(name = "id")
     private Long id;
 
-    @Column("email")
+    @Column(name = "email")
     private String email;
 
-    @Column("password")
+    @Column(name = "password")
     private String password;
 
-    @Column("name")
+    @Column(name = "name")
     private String name;
 
-    @Column("avatar_url")
+    @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Column("account_status")
+    @Column(name = "account_status")
     private Integer accountStatus;
 
-    @Column("sys_created_by")
+    @Column(name = "sys_created_by")
     private String sysCreatedBy;
 
-    @Column("sys_updated_by")
+    @Column(name = "sys_updated_by")
     private String sysUpdatedBy;
 
-    @Column("sys_created_time")
+    @Column(name = "sys_created_time")
     private Instant sysCreatedTime;
 
-    @Column("sys_updated_time")
+    @Column(name = "sys_updated_time")
     private Instant sysUpdatedTime;
 
-    @Column("sys_deleted")
+    @Column(name = "sys_deleted")
     private Boolean sysDeleted;
 
     @Getter

@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 import top.dumbzarro.template.common.biz.BizClaims;
 import top.dumbzarro.template.common.biz.BizEnum;
 import top.dumbzarro.template.common.biz.BizException;
@@ -42,26 +41,25 @@ public class AuthService {
     private final VerifyCodeHelper verifyCodeHelper;
 
     public AuthResponse register(String email, String password, String name) {
-        return userBasicInfoRepository.findByEmail(email).hasElement().flatMap(emailRegister -> {
-            if (emailRegister) {
-                return Mono.error(new BizException(BizEnum.OPERATION_FAILED, "邮箱已被注册"));
-            }
-            UserBasicInfoEntity user = new UserBasicInfoEntity();
-            user.setEmail(email);
-            user.setName(name);
-            user.setPassword(passwordEncoder.encode(password));
-            user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
-            user.setAccountStatus(AccountStatus.UNVERIFY.getCode());
+        UserBasicInfoEntity existedUser = userBasicInfoRepository.findByEmail(email);
+        if (Objects.nonNull(existedUser)) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "邮箱已被注册");
+        }
+        UserBasicInfoEntity user = new UserBasicInfoEntity();
+        user.setEmail(email);
+        user.setName(name);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
+        user.setAccountStatus(AccountStatus.UNVERIFY.getCode());
+        UserBasicInfoEntity savedUser = userBasicInfoRepository.save(user);
 
-            return userBasicInfoRepository.save(user).flatMap(savedUser -> {
-                UserRoleRelEntity userRoleRelEntity = new UserRoleRelEntity();
-                userRoleRelEntity.setUserId(savedUser.getId());
-                userRoleRelEntity.setRoleId(appConfig.getDefaultRoleId());
-                return userRoleRelRepository.save(userRoleRelEntity)
-                        .then(verifyCodeHelper.send(savedUser.getEmail(), VerifyCodeType.VERIFY_EMAIL))
-                        .thenReturn(assembleAuthResponseByUserBasicInfoEntity(savedUser));
-            });
-        });
+        UserRoleRelEntity userRoleRelEntity = new UserRoleRelEntity();
+        userRoleRelEntity.setUserId(savedUser.getId());
+        userRoleRelEntity.setRoleId(appConfig.getDefaultRoleId());
+        userRoleRelRepository.save(userRoleRelEntity);
+
+        verifyCodeHelper.send(savedUser.getEmail(), VerifyCodeType.VERIFY_EMAIL);
+        return assembleAuthResponseByUserBasicInfoEntity(savedUser);
     }
 
 
@@ -80,45 +78,48 @@ public class AuthService {
     }
 
     public Boolean verifyEmail(String email, String code) {
-        return verifyCodeHelper.verify(email, code, VerifyCodeType.VERIFY_EMAIL).flatMap(valid -> {
-            if (!valid) {
-                return Mono.error(new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期"));
-            }
-            return userBasicInfoRepository.findByEmail(email).flatMap(user -> {
-                user.setAccountStatus(AccountStatus.NORMAL.getCode());
-                return userBasicInfoRepository.save(user).thenReturn(Boolean.TRUE);
-            });
-        });
+        Boolean valid = verifyCodeHelper.verify(email, code, VerifyCodeType.VERIFY_EMAIL);
+        if (!valid) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
+        }
+
+        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        user.setAccountStatus(AccountStatus.NORMAL.getCode());
+        userBasicInfoRepository.save(user);
+        return Boolean.TRUE;
     }
 
 
     public Boolean forgotPassword(String email) {
-        return userBasicInfoRepository.findByEmail(email)
-                .flatMap(user -> verifyCodeHelper.send(email, VerifyCodeType.RESET_PASSWORD).thenReturn(Boolean.TRUE))
-                .switchIfEmpty(Mono.error(new BizException(BizEnum.OPERATION_FAILED, "用户不存在")));
+        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        if (Objects.isNull(user)) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
+        }
+        verifyCodeHelper.send(email, VerifyCodeType.RESET_PASSWORD);
+        return Boolean.TRUE;
     }
 
     public Boolean resetPassword(ResetPasswordRequest request) {
-        return verifyCodeHelper.verify(request.getEmail(), request.getVerifyCode(), VerifyCodeType.RESET_PASSWORD).flatMap(valid -> {
-            if (!valid) {
-                return Mono.error(new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期"));
-            }
-            return userBasicInfoRepository.findByEmail(request.getEmail())
-                    .flatMap(user -> {
-                        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-                        return userBasicInfoRepository.save(user).thenReturn(Boolean.TRUE);
-                    });
-        });
+        Boolean valid = verifyCodeHelper.verify(request.getEmail(), request.getVerifyCode(), VerifyCodeType.RESET_PASSWORD);
+        if (!valid) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
+        }
+        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userBasicInfoRepository.save(user);
+        return Boolean.TRUE;
     }
 
     public Boolean resendVerification(String email) {
-        return userBasicInfoRepository.findByEmail(email).flatMap(user -> {
-            if (!Objects.equals(user.getAccountStatus(), AccountStatus.UNVERIFY.getCode())) {
-                return Mono.error(new BizException(BizEnum.OPERATION_FAILED, "邮箱已验证"));
-            }
-            verifyCodeHelper.send(email, VerifyCodeType.VERIFY_EMAIL)
-            return true;
-        }).switchIfEmpty(Mono.error(new BizException(BizEnum.OPERATION_FAILED, "用户不存在")));
+        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        if (Objects.isNull(user)) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
+        }
+        if (!Objects.equals(user.getAccountStatus(), AccountStatus.UNVERIFY.getCode())) {
+            throw new BizException(BizEnum.OPERATION_FAILED, "邮箱已验证");
+        }
+        verifyCodeHelper.send(email, VerifyCodeType.VERIFY_EMAIL);
+        return Boolean.TRUE;
     }
 
 
