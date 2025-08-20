@@ -1,24 +1,21 @@
-package top.dumbzarro.template.repository.entity;
+package top.dumbzarro.template.repository.po;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.springframework.data.annotation.Id;
 import top.dumbzarro.template.common.biz.BizEnum;
 import top.dumbzarro.template.common.biz.BizException;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "user_basic_info")
-public class UserBasicInfoEntity {
-    @Id
-    @Column(name = "id")
-    private Long id;
+public class UserBasicInfoPo extends sysPo {
 
     @Column(name = "email")
     private String email;
@@ -35,20 +32,6 @@ public class UserBasicInfoEntity {
     @Column(name = "account_status")
     private Integer accountStatus;
 
-    @Column(name = "sys_created_by")
-    private String sysCreatedBy;
-
-    @Column(name = "sys_updated_by")
-    private String sysUpdatedBy;
-
-    @Column(name = "sys_created_time")
-    private Instant sysCreatedTime;
-
-    @Column(name = "sys_updated_time")
-    private Instant sysUpdatedTime;
-
-    @Column(name = "sys_deleted")
-    private Boolean sysDeleted;
 
     @Getter
     public enum AccountStatus {

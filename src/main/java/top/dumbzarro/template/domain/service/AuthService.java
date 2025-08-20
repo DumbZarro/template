@@ -18,9 +18,9 @@ import top.dumbzarro.template.common.util.TimeUtil;
 import top.dumbzarro.template.config.AppConfig;
 import top.dumbzarro.template.controller.auth.request.ResetPasswordRequest;
 import top.dumbzarro.template.controller.auth.response.AuthResponse;
-import top.dumbzarro.template.repository.entity.UserBasicInfoEntity;
-import top.dumbzarro.template.repository.entity.UserBasicInfoEntity.AccountStatus;
-import top.dumbzarro.template.repository.entity.UserRoleRelEntity;
+import top.dumbzarro.template.repository.po.UserBasicInfoPo;
+import top.dumbzarro.template.repository.po.UserBasicInfoPo.AccountStatus;
+import top.dumbzarro.template.repository.po.UserRoleRelPo;
 import top.dumbzarro.template.repository.postgre.UserBasicInfoRepository;
 import top.dumbzarro.template.repository.postgre.UserRoleRelRepository;
 
@@ -41,29 +41,29 @@ public class AuthService {
     private final VerifyCodeHelper verifyCodeHelper;
 
     public AuthResponse register(String email, String password, String name) {
-        UserBasicInfoEntity existedUser = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo existedUser = userBasicInfoRepository.findByEmail(email);
         if (Objects.nonNull(existedUser)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "邮箱已被注册");
         }
-        UserBasicInfoEntity user = new UserBasicInfoEntity();
+        UserBasicInfoPo user = new UserBasicInfoPo();
         user.setEmail(email);
         user.setName(name);
         user.setPassword(passwordEncoder.encode(password));
         user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
         user.setAccountStatus(AccountStatus.UNVERIFY.getCode());
-        UserBasicInfoEntity savedUser = userBasicInfoRepository.save(user);
+        UserBasicInfoPo savedUser = userBasicInfoRepository.save(user);
 
-        UserRoleRelEntity userRoleRelEntity = new UserRoleRelEntity();
-        userRoleRelEntity.setUserId(savedUser.getId());
-        userRoleRelEntity.setRoleId(appConfig.getDefaultRoleId());
-        userRoleRelRepository.save(userRoleRelEntity);
+        UserRoleRelPo userRoleRelPo = new UserRoleRelPo();
+        userRoleRelPo.setUserId(savedUser.getId());
+        userRoleRelPo.setRoleId(appConfig.getDefaultRoleId());
+        userRoleRelRepository.save(userRoleRelPo);
 
         verifyCodeHelper.send(savedUser.getEmail(), VerifyCodeType.VERIFY_EMAIL);
         return assembleAuthResponseByUserBasicInfoEntity(savedUser);
     }
 
 
-    private AuthResponse assembleAuthResponseByUserBasicInfoEntity(UserBasicInfoEntity entity) {
+    private AuthResponse assembleAuthResponseByUserBasicInfoEntity(UserBasicInfoPo entity) {
         BizClaims bizClaims = new BizClaims(entity.getEmail(), entity.getName());
         String token = jwtHelper.generateToken(String.valueOf(entity.getId()), bizClaims);
 
@@ -83,7 +83,7 @@ public class AuthService {
             throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
         }
 
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
         user.setAccountStatus(AccountStatus.NORMAL.getCode());
         userBasicInfoRepository.save(user);
         return Boolean.TRUE;
@@ -91,7 +91,7 @@ public class AuthService {
 
 
     public Boolean forgotPassword(String email) {
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
         if (Objects.isNull(user)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
         }
@@ -104,14 +104,14 @@ public class AuthService {
         if (!valid) {
             throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
         }
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(request.getEmail());
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userBasicInfoRepository.save(user);
         return Boolean.TRUE;
     }
 
     public Boolean resendVerification(String email) {
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
         if (Objects.isNull(user)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
         }
@@ -149,7 +149,7 @@ public class AuthService {
         if (attempts >= 5) {
             throw new BizException(BizEnum.AUTH_FAILED, "登录尝试次数过多，请15分钟后再试");
         }
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
         if (Objects.equals(user.getAccountStatus(), AccountStatus.UNVERIFY.getCode())) {
             throw new BizException(BizEnum.AUTH_FAILED, "邮箱未验证，请先验证邮箱");
         }

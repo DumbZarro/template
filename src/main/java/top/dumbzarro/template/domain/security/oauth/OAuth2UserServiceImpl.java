@@ -9,8 +9,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import top.dumbzarro.template.repository.entity.UserBasicInfoEntity;
-import top.dumbzarro.template.repository.entity.UserRoleRelEntity;
+import top.dumbzarro.template.repository.po.UserBasicInfoPo;
+import top.dumbzarro.template.repository.po.UserRoleRelPo;
 import top.dumbzarro.template.repository.postgre.UserBasicInfoRepository;
 import top.dumbzarro.template.repository.postgre.UserRoleRelRepository;
 
@@ -37,7 +37,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
             email = oauth2User.getName();
         }
 
-        UserBasicInfoEntity user = userBasicInfoRepository.findByEmail(email);
+        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
         if (Objects.isNull(user)) { // TODO
             user = createOAuth2User(email, name);
         }
@@ -46,18 +46,18 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("USER")), attributes, "email");
     }
 
-    private UserBasicInfoEntity createOAuth2User(String email, String name) {
-        UserBasicInfoEntity user = new UserBasicInfoEntity();
+    private UserBasicInfoPo createOAuth2User(String email, String name) {
+        UserBasicInfoPo user = new UserBasicInfoPo();
         user.setEmail(email);
         user.setName(name != null ? name : email);
         user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
-        user.setAccountStatus(UserBasicInfoEntity.AccountStatus.NORMAL.getCode()); // OAuth用户默认已验证
+        user.setAccountStatus(UserBasicInfoPo.AccountStatus.NORMAL.getCode()); // OAuth用户默认已验证
 
-        UserBasicInfoEntity savedUser = userBasicInfoRepository.save(user);
-        UserRoleRelEntity userRoleRelEntity = new UserRoleRelEntity();
-        userRoleRelEntity.setUserId(savedUser.getId());
-        userRoleRelEntity.setRoleId(appConfig.getDefaultRoleId());
-        userRoleRelRepository.save(userRoleRelEntity);
+        UserBasicInfoPo savedUser = userBasicInfoRepository.save(user);
+        UserRoleRelPo userRoleRelPo = new UserRoleRelPo();
+        userRoleRelPo.setUserId(savedUser.getId());
+        userRoleRelPo.setRoleId(appConfig.getDefaultRoleId());
+        userRoleRelRepository.save(userRoleRelPo);
         return savedUser;
     }
 }

@@ -1,45 +1,43 @@
-package top.dumbzarro.template.repository.entity;
+package top.dumbzarro.template.repository.po;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Table;
-import lombok.Data;
-import org.springframework.data.annotation.Id;
+import jakarta.persistence.MappedSuperclass;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.SoftDelete;
+import org.springframework.data.annotation.*;
 
 import java.time.Instant;
 
-
-@Data
-@Table(name = "perm")
-public class PermEntity {
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
+@MappedSuperclass
+public class sysPo {
     @Id
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "code")
-    private String code;
-
-    @Column(name = "description")
-    private String description;
-
-    @Column(name = "type")
-    private String type;
-
-    @Column(name = "resource")
-    private String resource;
-
+    @CreatedBy
     @Column(name = "sys_created_by")
     private String sysCreatedBy;
 
+    @LastModifiedBy
     @Column(name = "sys_updated_by")
     private String sysUpdatedBy;
 
+    @CreatedDate
     @Column(name = "sys_created_time")
     private Instant sysCreatedTime;
 
+    @LastModifiedDate
     @Column(name = "sys_updated_time")
     private Instant sysUpdatedTime;
 
+    @SoftDelete
     @Column(name = "sys_deleted")
     private Boolean sysDeleted;
-
 }

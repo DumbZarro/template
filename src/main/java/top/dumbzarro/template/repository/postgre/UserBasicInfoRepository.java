@@ -3,9 +3,9 @@ package top.dumbzarro.template.repository.postgre;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.Param;
-import top.dumbzarro.template.repository.entity.UserBasicInfoEntity;
+import top.dumbzarro.template.repository.po.UserBasicInfoPo;
 
-public interface UserBasicInfoRepository extends JpaRepository<UserBasicInfoEntity, Long> {
+public interface UserBasicInfoRepository extends JpaRepository<UserBasicInfoPo, Long> {
     @NativeQuery("""
             SELECT *
             FROM user_basic_info
@@ -13,5 +13,5 @@ public interface UserBasicInfoRepository extends JpaRepository<UserBasicInfoEnti
             AND email = :email
             LIMIT 1;
             """)
-    UserBasicInfoEntity findByEmail(@Param("email") String email);
+    UserBasicInfoPo findByEmail(@Param("email") String email);
 }
