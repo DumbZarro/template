@@ -17,7 +17,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 public class PemUtil {
-
+    private PemUtil() {
+    }
     /**
      * 加载RSA密钥对
      *

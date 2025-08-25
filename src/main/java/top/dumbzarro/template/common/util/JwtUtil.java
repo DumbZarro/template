@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.Map;
 
 public class JwtUtil {
+    private JwtUtil() {
+    }
 
     public static String generateToken(String subject, Map<String, Object> claims, long expirationMs, Key signingKey) {
         return Jwts.builder()

@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class TimeUtil {
+    private TimeUtil() {
+    }
     public static String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
 
     public static final Duration Duration_15_minutes = Duration.ofMinutes(15);

@@ -1,7 +1,7 @@
 package top.dumbzarro.template.repository.po;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -16,8 +16,10 @@ import java.time.Instant;
 @ToString
 @RequiredArgsConstructor
 @MappedSuperclass
-public class sysPo {
+public class SysPo {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 

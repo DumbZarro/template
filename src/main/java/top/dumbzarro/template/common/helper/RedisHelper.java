@@ -1,4 +1,4 @@
-package top.dumbzarro.template.common.util;
+package top.dumbzarro.template.common.helper;
 
 
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
-public class RedisUtil {
+public class RedisHelper {
     private final StringRedisTemplate redisTemplate;
 
 

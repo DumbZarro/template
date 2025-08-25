@@ -1,14 +1,15 @@
 package top.dumbzarro.template.repository.po;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Id;
 
+@Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "role")
-public class RolePo extends sysPo {
+@Table(name = "t_role")
+public class RolePo extends SysPo {
 
     @Column(name = "code")
     private String code;

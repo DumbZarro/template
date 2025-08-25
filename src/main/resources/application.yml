@@ -8,12 +8,14 @@ spring:
     name: template
   jpa:
     show-sql: true
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
   datasource:
-    hikari:
-      username: test
-      password: 123456
-      jdbc-url: jdbc:postgresql://localhost:5432/postgres?ssl=false
-      pool-name: postgres
+    url: jdbc:postgresql://localhost:5432/postgres?ssl=false
+    name: postgres
+    username: test
+    password: 123456
   data:
     redis:
       database: 0

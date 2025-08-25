@@ -9,9 +9,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import top.dumbzarro.template.repository.po.UserBasicInfoPo;
+import top.dumbzarro.template.repository.po.UserPo;
 import top.dumbzarro.template.repository.po.UserRoleRelPo;
-import top.dumbzarro.template.repository.postgre.UserBasicInfoRepository;
+import top.dumbzarro.template.repository.postgre.UserRepository;
 import top.dumbzarro.template.repository.postgre.UserRoleRelRepository;
 
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
-    private final UserBasicInfoRepository userBasicInfoRepository;
+    private final UserRepository userRepository;
     private final UserRoleRelRepository userRoleRelRepository;
     private final top.dumbzarro.template.config.AppConfig appConfig;
 
@@ -37,27 +37,27 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
             email = oauth2User.getName();
         }
 
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
-        if (Objects.isNull(user)) { // TODO
-            user = createOAuth2User(email, name);
+        UserPo userPo = userRepository.findByEmail(email);
+        if (Objects.isNull(userPo)) { // TODO
+            userPo = createOAuth2User(email, name);
         }
 
         // 创建OAuth2User对象, 使用email作为name属性
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("USER")), attributes, "email");
     }
 
-    private UserBasicInfoPo createOAuth2User(String email, String name) {
-        UserBasicInfoPo user = new UserBasicInfoPo();
-        user.setEmail(email);
-        user.setName(name != null ? name : email);
-        user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
-        user.setAccountStatus(UserBasicInfoPo.AccountStatus.NORMAL.getCode()); // OAuth用户默认已验证
+    private UserPo createOAuth2User(String email, String name) {
+        UserPo userPo = new UserPo();
+        userPo.setEmail(email);
+        userPo.setName(name != null ? name : email);
+        userPo.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
+        userPo.setAccountStatus(UserPo.AccountStatus.NORMAL); // OAuth用户默认已验证
 
-        UserBasicInfoPo savedUser = userBasicInfoRepository.save(user);
+        UserPo savedUserPo = userRepository.save(userPo);
         UserRoleRelPo userRoleRelPo = new UserRoleRelPo();
-        userRoleRelPo.setUserId(savedUser.getId());
+        userRoleRelPo.setUserId(savedUserPo.getId());
         userRoleRelPo.setRoleId(appConfig.getDefaultRoleId());
         userRoleRelRepository.save(userRoleRelPo);
-        return savedUser;
+        return savedUserPo;
     }
 }

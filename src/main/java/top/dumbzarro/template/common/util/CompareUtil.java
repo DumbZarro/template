@@ -11,6 +11,9 @@ import java.util.*;
  */
 @Slf4j
 public class CompareUtil {
+    private CompareUtil() {
+    }
+
     public static <T> boolean compareCollection(List<T> list1, List<T> list2, Comparator<T> comparator, Set<String> ignoredFields) {
         return doCompareLists(new ArrayList<>(list1), new ArrayList<>(list2), comparator, ignoredFields);
     }

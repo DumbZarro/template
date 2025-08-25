@@ -4,7 +4,6 @@ import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import top.dumbzarro.template.common.biz.BizClaims;
@@ -18,10 +17,10 @@ import top.dumbzarro.template.common.util.TimeUtil;
 import top.dumbzarro.template.config.AppConfig;
 import top.dumbzarro.template.controller.auth.request.ResetPasswordRequest;
 import top.dumbzarro.template.controller.auth.response.AuthResponse;
-import top.dumbzarro.template.repository.po.UserBasicInfoPo;
-import top.dumbzarro.template.repository.po.UserBasicInfoPo.AccountStatus;
+import top.dumbzarro.template.repository.po.UserPo;
+import top.dumbzarro.template.repository.po.UserPo.AccountStatus;
 import top.dumbzarro.template.repository.po.UserRoleRelPo;
-import top.dumbzarro.template.repository.postgre.UserBasicInfoRepository;
+import top.dumbzarro.template.repository.postgre.UserRepository;
 import top.dumbzarro.template.repository.postgre.UserRoleRelRepository;
 
 import java.util.Objects;
@@ -34,36 +33,35 @@ public class AuthService {
     private final AppConfig appConfig;
     private final SymmetricJwtHelper jwtHelper;
     private final PasswordEncoder passwordEncoder;
-    private final ReactiveAuthenticationManager reactiveAuthenticationManager;
     private final StringRedisTemplate stringRedisTemplate;
-    private final UserBasicInfoRepository userBasicInfoRepository;
+    private final UserRepository userRepository;
     private final UserRoleRelRepository userRoleRelRepository;
     private final VerifyCodeHelper verifyCodeHelper;
 
     public AuthResponse register(String email, String password, String name) {
-        UserBasicInfoPo existedUser = userBasicInfoRepository.findByEmail(email);
-        if (Objects.nonNull(existedUser)) {
+        UserPo existedUserPo = userRepository.findByEmail(email);
+        if (Objects.nonNull(existedUserPo)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "邮箱已被注册");
         }
-        UserBasicInfoPo user = new UserBasicInfoPo();
-        user.setEmail(email);
-        user.setName(name);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
-        user.setAccountStatus(AccountStatus.UNVERIFY.getCode());
-        UserBasicInfoPo savedUser = userBasicInfoRepository.save(user);
+        UserPo userPo = new UserPo();
+        userPo.setEmail(email);
+        userPo.setName(name);
+        userPo.setPassword(passwordEncoder.encode(password));
+        userPo.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
+        userPo.setAccountStatus(AccountStatus.UNVERIFY);
+        UserPo savedUserPo = userRepository.save(userPo);
 
         UserRoleRelPo userRoleRelPo = new UserRoleRelPo();
-        userRoleRelPo.setUserId(savedUser.getId());
+        userRoleRelPo.setUserId(savedUserPo.getId());
         userRoleRelPo.setRoleId(appConfig.getDefaultRoleId());
         userRoleRelRepository.save(userRoleRelPo);
 
-        verifyCodeHelper.send(savedUser.getEmail(), VerifyCodeType.VERIFY_EMAIL);
-        return assembleAuthResponseByUserBasicInfoEntity(savedUser);
+        verifyCodeHelper.send(savedUserPo.getEmail(), VerifyCodeType.VERIFY_EMAIL);
+        return assembleAuthResponseByUserBasicInfoEntity(savedUserPo);
     }
 
 
-    private AuthResponse assembleAuthResponseByUserBasicInfoEntity(UserBasicInfoPo entity) {
+    private AuthResponse assembleAuthResponseByUserBasicInfoEntity(UserPo entity) {
         BizClaims bizClaims = new BizClaims(entity.getEmail(), entity.getName());
         String token = jwtHelper.generateToken(String.valueOf(entity.getId()), bizClaims);
 
@@ -72,7 +70,7 @@ public class AuthService {
                 .email(entity.getEmail())
                 .username(entity.getName())
                 .avatarUrl(entity.getAvatarUrl())
-                .accountStatus(AccountStatus.getDescByCode(entity.getAccountStatus()))
+                .accountStatus(entity.getAccountStatus().getDesc())
                 .token(token)
                 .build();
     }
@@ -83,16 +81,16 @@ public class AuthService {
             throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
         }
 
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
-        user.setAccountStatus(AccountStatus.NORMAL.getCode());
-        userBasicInfoRepository.save(user);
+        UserPo userPo = userRepository.findByEmail(email);
+        userPo.setAccountStatus(AccountStatus.NORMAL);
+        userRepository.save(userPo);
         return Boolean.TRUE;
     }
 
 
     public Boolean forgotPassword(String email) {
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
-        if (Objects.isNull(user)) {
+        UserPo userPo = userRepository.findByEmail(email);
+        if (Objects.isNull(userPo)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
         }
         verifyCodeHelper.send(email, VerifyCodeType.RESET_PASSWORD);
@@ -104,18 +102,18 @@ public class AuthService {
         if (!valid) {
             throw new BizException(BizEnum.OPERATION_FAILED, "验证码无效或已过期");
         }
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userBasicInfoRepository.save(user);
+        UserPo userPo = userRepository.findByEmail(request.getEmail());
+        userPo.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(userPo);
         return Boolean.TRUE;
     }
 
     public Boolean resendVerification(String email) {
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
-        if (Objects.isNull(user)) {
+        UserPo userPo = userRepository.findByEmail(email);
+        if (Objects.isNull(userPo)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "用户不存在");
         }
-        if (!Objects.equals(user.getAccountStatus(), AccountStatus.UNVERIFY.getCode())) {
+        if (!Objects.equals(userPo.getAccountStatus(), AccountStatus.UNVERIFY)) {
             throw new BizException(BizEnum.OPERATION_FAILED, "邮箱已验证");
         }
         verifyCodeHelper.send(email, VerifyCodeType.VERIFY_EMAIL);
@@ -149,17 +147,17 @@ public class AuthService {
         if (attempts >= 5) {
             throw new BizException(BizEnum.AUTH_FAILED, "登录尝试次数过多，请15分钟后再试");
         }
-        UserBasicInfoPo user = userBasicInfoRepository.findByEmail(email);
-        if (Objects.equals(user.getAccountStatus(), AccountStatus.UNVERIFY.getCode())) {
+        UserPo userPo = userRepository.findByEmail(email);
+        if (Objects.equals(userPo.getAccountStatus(), AccountStatus.UNVERIFY)) {
             throw new BizException(BizEnum.AUTH_FAILED, "邮箱未验证，请先验证邮箱");
         }
-        if (!Objects.equals(AccountStatus.NORMAL.getCode(), user.getAccountStatus())) {
-            throw new BizException(BizEnum.AUTH_FAILED, "账户状态异常：" + user.getAccountStatus());
+        if (!Objects.equals(userPo.getAccountStatus(), AccountStatus.NORMAL)) {
+            throw new BizException(BizEnum.AUTH_FAILED, "账户状态异常：" + userPo.getAccountStatus().getDesc());
         }
-        if (passwordEncoder.matches(password, user.getPassword())) {
+        if (passwordEncoder.matches(password, userPo.getPassword())) {
             throw new BizException(BizEnum.AUTH_FAILED, "账号密码错误");
         }
-        resetLoginAttempts(user.getEmail());
-        return assembleAuthResponseByUserBasicInfoEntity(user);
+        resetLoginAttempts(userPo.getEmail());
+        return assembleAuthResponseByUserBasicInfoEntity(userPo);
     }
 }
