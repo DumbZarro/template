@@ -1,25 +1,24 @@
 package top.dumbzarro.template.common.biz;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
-@NoArgsConstructor
+@Builder
 public class BizClaims {
     /**
      * 自定义
      */
     private String email;
-    private String username;
-    // TODO
-//    private List<String> roles;
-//    private List<String> permissions;
+    private String nickname;
+    private Set<String> roles;
+    private Set<String> perms;
 
-    public BizClaims(String email, String username) {
+    public BizClaims(String email, String nickname) {
         this.email = email;
-        this.username = username;
+        this.nickname = nickname;
     }
 
     /**

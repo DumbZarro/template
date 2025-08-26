@@ -22,10 +22,10 @@ public class UserPo extends SysPo {
     @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "nickname", nullable = false)
+    private String nickname;
 
-    @Column(name = "avatar_url")
+    @Column(name = "avatar_url", nullable = false)
     private String avatarUrl;
 
     @Column(name = "account_status", nullable = false)

@@ -13,17 +13,17 @@ import top.dumbzarro.template.common.helper.jwt.SymmetricJwtHelper;
 @Component
 public class JwtAuthenticationManager implements AuthenticationManager {
 
-    private final SymmetricJwtHelper jwtProcessor;
+    private final SymmetricJwtHelper symmetricJwtHelper;
 
-    public JwtAuthenticationManager(SymmetricJwtHelper jwtProcessor) {
-        this.jwtProcessor = jwtProcessor;
+    public JwtAuthenticationManager(SymmetricJwtHelper symmetricJwtHelper) {
+        this.symmetricJwtHelper = symmetricJwtHelper;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) {
         try {
             String token = authentication.getCredentials().toString();
-            BizClaims claims = jwtProcessor.parseToken(token);
+            BizClaims claims = symmetricJwtHelper.parseToken(token);
             // TODO 角色的权限??
             return authentication;
         } catch (ExpiredJwtException e) {

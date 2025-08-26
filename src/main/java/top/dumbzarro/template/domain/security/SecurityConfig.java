@@ -10,7 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import top.dumbzarro.template.common.biz.BizClaims;
@@ -35,7 +37,6 @@ import top.dumbzarro.template.domain.security.oauth.OAuth2UserServiceImpl;
 @EnableMethodSecurity // 方法级别权限校验
 public class SecurityConfig {
 
-    private final UserDetailsService userDetailsService;
     private final OAuth2UserServiceImpl oAuth2UserService;
     private final JwtAuthenticationManager jwtAuthenticationManager;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -51,12 +52,10 @@ public class SecurityConfig {
             requests.anyRequest().authenticated();
         });
 
-        // 配置表单登录
-        http.formLogin(formLogin -> formLogin
-                .successHandler(formLoginAuthenticationSuccessHandler())
-                .failureHandler(formLoginAuthenticationFailureHandler())
-                .securityContextRepository(securityContextRepository())
-        );
+        // 添加JWT认证过滤器
+        AuthenticationFilter jwtFilter = new AuthenticationFilter(jwtAuthenticationManager, new JwtServerAuthenticationConverter());
+        jwtFilter.setFailureHandler(jwtAuthenticationEntryPoint::commence);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 配置OAuth2登录
         http.oauth2Login(oauth2 -> oauth2
@@ -65,12 +64,6 @@ public class SecurityConfig {
                 .securityContextRepository(securityContextRepository())
         );
 
-        // 添加JWT认证过滤器
-        AuthenticationFilter jwtFilter = new AuthenticationFilter(jwtAuthenticationManager, new JwtServerAuthenticationConverter());
-        jwtFilter.setFailureHandler(jwtAuthenticationEntryPoint::commence);
-//        jwtFilter.setRequestMatcher(PathPatternRequestMatcher.pathMatchers("/api/**"));
-//        http.addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION);
-
         // 配置异常处理
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
@@ -78,8 +71,9 @@ public class SecurityConfig {
         );
 
         // 禁用不需要的安全特性
-//        http.httpBasic(ServerHttpSecurity.HttpBasicSpec::disable);
-//        http.csrf(ServerHttpSecurity.CsrfSpec::disable);
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.formLogin(AbstractHttpConfigurer::disable);
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
@@ -91,13 +85,13 @@ public class SecurityConfig {
             String email = authentication.getName();
             String username = authentication.getName(); // 可以根据需要获取用户名
 
-            BizClaims claims = new BizClaims(email, username);
+            BizClaims claims = BizClaims.builder().email(email).nickname(username).build();
             String token = jwtHelper.generateToken(email, claims);
 
             // 构建响应
             AuthResponse authResponse = AuthResponse.builder()
                     .email(email)
-                    .username(username)
+                    .nickname(username)
                     .token(token)
                     .build();
 
@@ -124,7 +118,8 @@ public class SecurityConfig {
             }
 
             // 生成JWT token
-            BizClaims claims = new BizClaims(email, name);
+            BizClaims claims = BizClaims.builder().email(email).nickname(name).build();
+
             String token = jwtHelper.generateToken(email, claims);
 
             // 构建响应

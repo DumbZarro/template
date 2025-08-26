@@ -19,6 +19,6 @@ public class UserRoleRelPo extends SysPo {
     private Long roleId;
 
     @Column(name = "role_code")
-    private Long roleCode;
+    private String roleCode;
 
 }

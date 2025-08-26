@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import top.dumbzarro.template.config.AppConfig;
 import top.dumbzarro.template.repository.po.UserPo;
 import top.dumbzarro.template.repository.po.UserRoleRelPo;
 import top.dumbzarro.template.repository.postgre.UserRepository;
@@ -24,7 +25,7 @@ import java.util.Objects;
 public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final UserRoleRelRepository userRoleRelRepository;
-    private final top.dumbzarro.template.config.AppConfig appConfig;
+    private final AppConfig appConfig;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -49,7 +50,7 @@ public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
     private UserPo createOAuth2User(String email, String name) {
         UserPo userPo = new UserPo();
         userPo.setEmail(email);
-        userPo.setName(name != null ? name : email);
+        userPo.setNickname(name != null ? name : email);
         userPo.setAvatarUrl("https://api.dicebear.com/7.x/avataaars/svg?seed=" + name);
         userPo.setAccountStatus(UserPo.AccountStatus.NORMAL); // OAuth用户默认已验证
 
