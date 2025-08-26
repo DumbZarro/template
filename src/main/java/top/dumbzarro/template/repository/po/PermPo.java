@@ -16,16 +16,19 @@ import top.dumbzarro.template.common.enums.EnumColumnConverter;
 @Table(name = "t_perm")
 public class PermPo extends SysPo {
 
-    @Column(name = "code")
+    @Column(name = "code", nullable = false, unique = true)
     private String code;
+
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "description")
     private String description;
 
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     private Type type;
 
-    @Column(name = "resource")
+    @Column(name = "resource", nullable = false)
     private String resource;
 
     @Getter

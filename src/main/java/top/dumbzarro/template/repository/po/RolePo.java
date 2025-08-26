@@ -1,9 +1,10 @@
 package top.dumbzarro.template.repository.po;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.annotation.Id;
 
 @Entity
 @Data
@@ -11,10 +12,10 @@ import org.springframework.data.annotation.Id;
 @Table(name = "t_role")
 public class RolePo extends SysPo {
 
-    @Column(name = "code")
+    @Column(name = "code", nullable = false, unique = true)
     private String code;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "description")

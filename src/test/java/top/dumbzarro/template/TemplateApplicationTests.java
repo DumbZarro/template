@@ -17,7 +17,7 @@ class TemplateApplicationTests {
     void contextLoads() {
         UserPo userPo = new UserPo();
         userPo.setAccountStatus(UserPo.AccountStatus.NORMAL);
-        userPo.setEmail("serw");
+        userPo.setEmail("ser123w");
         userRepository.save(userPo);
     }
 

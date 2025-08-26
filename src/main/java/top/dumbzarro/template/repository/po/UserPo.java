@@ -19,16 +19,16 @@ public class UserPo extends SysPo {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Column(name = "account_status")
+    @Column(name = "account_status", nullable = false)
     private AccountStatus accountStatus;
 
 
