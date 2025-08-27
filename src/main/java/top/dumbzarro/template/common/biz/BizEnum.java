@@ -10,7 +10,7 @@ public enum BizEnum {
     PARAM_ERROR(10003, "参数错误"), // 用户入参导致异常
     REQUEST_ERROR(10004, "服务调用异常"), // 调用第三方导致异常
     OPERATION_FAILED(10005, "操作失败"), // 读写内部系统导致异常
-    AUTH_FAILED(10006, "操作失败"), // 认证鉴权相关异常
+    AUTH_FAILED(10006, "认证失败"), // 认证鉴权相关异常
     ;
 
     private final int code;

@@ -9,12 +9,18 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.NonceExpiredException;
 import org.springframework.stereotype.Component;
+import top.dumbzarro.template.common.biz.BizEnum;
+import top.dumbzarro.template.common.biz.BizResponse;
+import top.dumbzarro.template.common.util.JsonUtil;
+
+import java.io.IOException;
+import java.util.Objects;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
@@ -26,9 +32,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         } else {
             errorMessage = "认证失败：" + authException.getMessage();
         }
-
-//        String body = String.format("{\"code\":401,\"msg\":\"%s\"}", errorMessage);
-//        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-//                .bufferFactory().wrap(body.getBytes())));
+        String responseBody = JsonUtil.toJson(new BizResponse<>(BizEnum.AUTH_FAILED, errorMessage));
+        if (Objects.nonNull(responseBody)) {
+            response.getWriter().write(responseBody);
+        }
     }
 }
