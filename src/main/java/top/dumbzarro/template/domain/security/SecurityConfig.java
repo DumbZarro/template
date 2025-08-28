@@ -65,7 +65,7 @@ public class SecurityConfig {
         );
 
         // 禁用不需要的安全特性
-        http.csrf(AbstractHttpConfigurer::disable);
+        http.csrf(AbstractHttpConfigurer::disable); // 不使用cookie无需防御csrf
         http.formLogin(AbstractHttpConfigurer::disable);
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
