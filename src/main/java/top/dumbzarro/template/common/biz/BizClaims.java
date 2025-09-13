@@ -2,6 +2,7 @@ package top.dumbzarro.template.common.biz;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
@@ -16,10 +17,6 @@ public class BizClaims {
     private Set<String> roles;
     private Set<String> perms;
 
-    public BizClaims(String email, String nickname) {
-        this.email = email;
-        this.nickname = nickname;
-    }
 
     /**
      * Jwt标准
