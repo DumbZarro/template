@@ -1,15 +1,14 @@
 package top.dumbzarro.template.common.helper.jwt;
 
+import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import top.dumbzarro.template.common.biz.BizClaims;
 import top.dumbzarro.template.common.util.JsonUtil;
 import top.dumbzarro.template.common.util.JwtUtil;
 import top.dumbzarro.template.config.AppConfig;
-import io.jsonwebtoken.security.Keys;
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.util.Map;
 
 @Component
 @AllArgsConstructor

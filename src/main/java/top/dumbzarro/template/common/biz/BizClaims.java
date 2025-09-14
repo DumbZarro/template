@@ -2,7 +2,6 @@ package top.dumbzarro.template.common.biz;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Set;
 
@@ -19,7 +18,7 @@ public class BizClaims {
 
 
     /**
-     * Jwt标准
+     * Jwt标准 {@link io.jsonwebtoken.Claims}
      */
     // 签发者（Issuer）
     private String iss;
