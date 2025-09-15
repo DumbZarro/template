@@ -14,7 +14,7 @@ docker run --name postgres --restart=always -e POSTGRES_USER=test -e POSTGRES_PA
 ```
 
 #### .env
-配置文件中账号相关信息通过.env文件声明，不通过git管理，运行前需要替换为实际的参数或同样声明一个.env文件
+配置文件中账号相关信息通过.env文件声明，不通过git管理，运行前需要替换为实际的参数或在根目录同样声明一个.env文件
 
 ```dotenv
 GITHUB_CLIENT_ID=12312
