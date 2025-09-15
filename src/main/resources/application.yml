@@ -31,8 +31,8 @@ spring:
           min-idle: 0
   mail:
     host: smtp.126.com
-    username: dumbzarro@126.com
-    password: VBrgTR8t9MV8Jz6Y
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
