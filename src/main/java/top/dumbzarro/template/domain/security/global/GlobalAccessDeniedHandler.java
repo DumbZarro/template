@@ -1,7 +1,8 @@
-package top.dumbzarro.template.domain.security.jwt;
+package top.dumbzarro.template.domain.security.global;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -12,19 +13,17 @@ import top.dumbzarro.template.common.biz.BizResponse;
 import top.dumbzarro.template.common.util.JsonUtil;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.Optional;
 
 @Component
-public class JwtAccessDeniedHandler implements AccessDeniedHandler {
+public class GlobalAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        // TODO
+        response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        String responseBody = JsonUtil.toJson(new BizResponse<>(BizEnum.AUTH_FAILED, "JwtAccessDeniedHandler未认证或token无效"));
-        if (Objects.nonNull(responseBody)) {
-            response.getWriter().write(responseBody);
-        }
+        response.getWriter().write(Optional.ofNullable(JsonUtil.toJson(new BizResponse<>(BizEnum.PERM_FAILED))).orElse(StringUtils.EMPTY));
     }
 
 }

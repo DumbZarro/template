@@ -13,12 +13,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import top.dumbzarro.template.domain.security.jwt.JwtAccessDeniedHandler;
-import top.dumbzarro.template.domain.security.jwt.JwtAuthenticationEntryPoint;
-import top.dumbzarro.template.domain.security.jwt.JwtAuthenticationManager;
-import top.dumbzarro.template.domain.security.jwt.JwtServerAuthenticationConverter;
+import top.dumbzarro.template.domain.security.global.GlobalAccessDeniedHandler;
+import top.dumbzarro.template.domain.security.global.GlobalAuthenticationEntryPoint;
+import top.dumbzarro.template.domain.security.jwt.JwtFilter;
 import top.dumbzarro.template.domain.security.oauth.OAuth2AuthenticationFailureHandler;
 import top.dumbzarro.template.domain.security.oauth.OAuth2AuthenticationSuccessHandler;
 import top.dumbzarro.template.domain.security.oauth.OAuth2UserServiceImpl;
@@ -29,9 +27,10 @@ import top.dumbzarro.template.domain.security.oauth.OAuth2UserServiceImpl;
 @EnableMethodSecurity // 方法级别权限校验
 public class SecurityConfig {
 
-    private final JwtAuthenticationManager jwtAuthenticationManager;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    private final JwtFilter jwtFilter;
+    private final GlobalAuthenticationEntryPoint globalAuthenticationEntryPoint;
+    private final GlobalAccessDeniedHandler globalAccessDeniedHandler;
 
     private final OAuth2UserServiceImpl oauth2UserService;
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
@@ -47,8 +46,6 @@ public class SecurityConfig {
         });
 
         // 添加JWT认证过滤器
-        AuthenticationFilter jwtFilter = new AuthenticationFilter(jwtAuthenticationManager, new JwtServerAuthenticationConverter());
-        jwtFilter.setFailureHandler(jwtAuthenticationEntryPoint::commence);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 配置OAuth2登录
@@ -60,8 +57,8 @@ public class SecurityConfig {
 
         // 配置异常处理
         http.exceptionHandling(configurer -> configurer
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler)
+                .authenticationEntryPoint(globalAuthenticationEntryPoint) // 认证失败处理
+                .accessDeniedHandler(globalAccessDeniedHandler) // 权限不足处理
         );
 
         // 禁用不需要的安全特性

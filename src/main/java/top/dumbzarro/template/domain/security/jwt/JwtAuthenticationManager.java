@@ -47,7 +47,7 @@ public class JwtAuthenticationManager implements AuthenticationManager {
             UsernamePasswordAuthenticationToken.authenticated(claims, token, authorities);
             return authentication;
         } catch (ExpiredJwtException e) {
-            log.error("token expired: authentication:{}", authentication, e);
+            log.error("token expired. authentication:{}", authentication, e);
             throw new BadCredentialsException("token已过期", e);
         } catch (Exception e) {
             log.error("token parse fail. authentication:{}", authentication, e);
