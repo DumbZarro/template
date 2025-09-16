@@ -19,7 +19,7 @@ import top.dumbzarro.template.domain.security.global.GlobalAuthenticationEntryPo
 import top.dumbzarro.template.domain.security.jwt.JwtFilter;
 import top.dumbzarro.template.domain.security.oauth.OAuth2AuthenticationFailureHandler;
 import top.dumbzarro.template.domain.security.oauth.OAuth2AuthenticationSuccessHandler;
-import top.dumbzarro.template.domain.security.oauth.OAuth2UserServiceImpl;
+import top.dumbzarro.template.domain.security.oauth.OAuth2UserService;
 
 @AllArgsConstructor
 @Configuration
@@ -32,7 +32,7 @@ public class SecurityConfig {
     private final GlobalAuthenticationEntryPoint globalAuthenticationEntryPoint;
     private final GlobalAccessDeniedHandler globalAccessDeniedHandler;
 
-    private final OAuth2UserServiceImpl oauth2UserService;
+    private final OAuth2UserService oauth2UserService;
     private final OAuth2AuthenticationSuccessHandler oauth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oauth2AuthenticationFailureHandler;
 
@@ -50,7 +50,7 @@ public class SecurityConfig {
 
         // 配置OAuth2登录
         http.oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(oauth2UserService))
+                .userInfoEndpoint(config -> config.userService(oauth2UserService))
                 .successHandler(oauth2AuthenticationSuccessHandler)
                 .failureHandler(oauth2AuthenticationFailureHandler)
         );

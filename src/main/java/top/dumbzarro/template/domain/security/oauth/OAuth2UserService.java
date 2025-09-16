@@ -22,7 +22,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OAuth2UserServiceImpl extends DefaultOAuth2UserService {
+public class OAuth2UserService extends DefaultOAuth2UserService {
     private final UserRepository userRepository;
     private final UserRoleRelRepository userRoleRelRepository;
     private final AppConfig appConfig;
