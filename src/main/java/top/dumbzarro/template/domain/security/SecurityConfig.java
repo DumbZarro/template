@@ -50,6 +50,8 @@ public class SecurityConfig {
 
         // 配置OAuth2登录
         http.oauth2Login(oauth2 -> oauth2
+                .authorizationEndpoint(endpoints -> endpoints.baseUri("/auth/oauth2/authorization"))
+                .redirectionEndpoint(endpoints -> endpoints.baseUri("/auth/oauth2/callback/*"))
                 .userInfoEndpoint(config -> config.userService(oauth2UserService))
                 .successHandler(oauth2AuthenticationSuccessHandler)
                 .failureHandler(oauth2AuthenticationFailureHandler)
