@@ -1,7 +1,5 @@
 package top.dumbzarro.template.domain.security.oauth;
 
-import jakarta.persistence.Converter;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,9 +9,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
-import top.dumbzarro.template.common.enums.BaseEnum;
-import top.dumbzarro.template.common.enums.EnumColumnConverter;
 import top.dumbzarro.template.config.AppConfig;
+import top.dumbzarro.template.repository.po.UserOAuthRelPo;
 import top.dumbzarro.template.repository.po.UserPo;
 import top.dumbzarro.template.repository.po.UserRoleRelPo;
 import top.dumbzarro.template.repository.postgre.UserRepository;
@@ -37,13 +34,14 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oauth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oauth2User.getAttributes();
 
-        if (Objects.equals(userRequest.getClientRegistration().getRegistrationId(), OAuth2Provider.GITHUB.getRegistrationId())) {
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        if (Objects.equals(registrationId, UserOAuthRelPo.Registration.GITHUB_USER_INFO.getId())) {
             createUserForGitHub(attributes);
-        } else if (Objects.equals(userRequest.getClientRegistration().getRegistrationId(), OAuth2Provider.GOOGLE.getRegistrationId())) {
+        } else if (Objects.equals(registrationId, UserOAuthRelPo.Registration.GOOGLE_USER_INFO.getId())) {
             createUserForGoogle(attributes);
         } else {
-            log.warn("Unsupported OAuth2 provider: {}", userRequest.getClientRegistration().getRegistrationId());
-            throw new OAuth2AuthenticationException("Unsupported OAuth2 provider");
+            log.warn("OAuth2UserService loadUser Unsupported OAuth2 registration: {}", registrationId);
+            throw new OAuth2AuthenticationException("Unsupported OAuth2 registration");
         }
 
 
@@ -98,25 +96,4 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     }
 
 
-    @Getter
-    public enum OAuth2Provider implements BaseEnum {
-        GITHUB(1, "github"),
-        GOOGLE(2, "google");
-
-        private final Integer code;
-        private final String registrationId;
-
-        OAuth2Provider(Integer code, String registrationId) {
-            this.code = code;
-            this.registrationId = registrationId;
-        }
-
-        @Converter(autoApply = true) // autoApply = true 表示自动应用于所有AccountStatus类型的属性
-        public static class OAuth2ProviderConverter extends EnumColumnConverter<OAuth2Provider> {
-            public OAuth2ProviderConverter() {
-                super(OAuth2Provider.class);
-            }
-        }
-
-    }
 }

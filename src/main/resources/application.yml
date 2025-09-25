@@ -46,16 +46,16 @@ spring:
     oauth2:
       client:
         registration:
-          github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
+          github-user-info:
+            client-id: ${GITHUB_USER_INFO_CLIENT_ID}
+            client-secret: ${GITHUB_USER_INFO_CLIENT_SECRET}
             scope: read:user,user:email
             redirect-uri: "{baseUrl}/auth/oauth2/callback/{registrationId}"
             client-authentication-method: client_secret_basic
             authorization-grant-type: authorization_code
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+          google-user-info:
+            client-id: ${GOOGLE_USER_INFO_CLIENT_ID}
+            client-secret: ${GOOGLE_USER_INFO_CLIENT_SECRET}
             scope: openid,profile,email
             redirect-uri: "{baseUrl}/auth/oauth2/callback/{registrationId}"
             client-authentication-method: client_secret_basic
