@@ -2,7 +2,7 @@ package top.dumbzarro.template.common.enums;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import top.dumbzarro.template.common.util.EnumUtils;
+import top.dumbzarro.template.common.util.EnumUtil;
 
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ public abstract class EnumColumnConverter<T extends Enum<T> & BaseEnum> implemen
 
     @Override
     public T convertToEntityAttribute(Integer dbData) {
-        return EnumUtils.getByCode(clazz, dbData);
+        return EnumUtil.getByCode(clazz, dbData);
     }
 
 }

@@ -2,6 +2,7 @@ package top.dumbzarro.template.domain.security.global;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -15,7 +16,7 @@ import top.dumbzarro.template.common.biz.BizResponse;
 import top.dumbzarro.template.common.util.JsonUtil;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.Optional;
 
 @Component
 public class GlobalAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -35,9 +36,6 @@ public class GlobalAuthenticationEntryPoint implements AuthenticationEntryPoint 
         } else {
             errorMessage = "认证失败：" + authException.getMessage();
         }
-        String responseBody = JsonUtil.toJson(new BizResponse<>(BizEnum.AUTH_FAILED, errorMessage));
-        if (Objects.nonNull(responseBody)) {
-            response.getWriter().write(responseBody);
-        }
+        response.getWriter().write(Optional.ofNullable(JsonUtil.toJson(new BizResponse<>(BizEnum.AUTH_FAILED, errorMessage))).orElse(StringUtils.EMPTY));
     }
 }

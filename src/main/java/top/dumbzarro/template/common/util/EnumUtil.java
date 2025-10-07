@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class EnumUtils {
+public class EnumUtil {
 
-    private EnumUtils() {
+    private EnumUtil() {
     }
 
     private static final Map<Class<?>, Map<Integer, ?>> ENUM_CODE_CACHE = new ConcurrentHashMap<>();
