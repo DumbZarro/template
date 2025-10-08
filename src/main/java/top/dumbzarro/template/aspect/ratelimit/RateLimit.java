@@ -9,29 +9,30 @@ import java.util.concurrent.TimeUnit;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RateLimit {
+    /**
+     * 限流的key，支持SpEL表达式
+     */
+    String key();
 
     /**
      * 时间间隔内的请求上限
      */
-    int maxCalls() default 3;
+    int maxCall();
 
     /**
      * 限流时间间隔
      */
-    int interval() default 5;
+    int interval();
 
     /**
      * 限流时间间隔的单位
      */
     TimeUnit timeUnit() default TimeUnit.MINUTES;
 
-    /**
-     * 限流的key，支持SpEL表达式
-     */
-    String key() default "";
+    boolean resetInterval() default false;
 
     /**
      * 触发限流后的提示信息
      */
-    String message() default "";
+    String message() default "操作过于频繁，请稍后再试";
 }

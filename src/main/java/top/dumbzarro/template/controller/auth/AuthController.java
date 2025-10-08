@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import top.dumbzarro.template.aspect.ratelimit.RateLimit;
 import top.dumbzarro.template.common.biz.BizResponse;
 import top.dumbzarro.template.controller.auth.request.*;
 import top.dumbzarro.template.controller.auth.response.AuthResponse;
 import top.dumbzarro.template.domain.service.AuthService;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -44,6 +47,7 @@ public class AuthController {
 
     @Operation(description = "登陆")
     @PostMapping("/login")
+    @RateLimit(key = "#request.email", maxCall = 5, interval = 15, timeUnit = TimeUnit.MINUTES, resetInterval = true, message = "登录请求过于频繁，请15分钟后再试")
     public BizResponse<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return new BizResponse<>(authService.login(request.getEmail(), request.getPassword()));
     }

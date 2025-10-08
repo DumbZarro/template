@@ -12,6 +12,7 @@ public enum BizEnum {
     OPERATION_FAILED(10005, "操作失败"), // 读写内部系统导致异常
     AUTH_FAILED(10006, "认证失败"), // 认证相关异常
     PERM_FAILED(10007, "鉴权失败"), // 鉴权相关异常
+    RATE_LIMIT(10008, "操作过于频繁"), // 限流相关异常
     ;
 
     private final int code;

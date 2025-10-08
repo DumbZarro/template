@@ -13,9 +13,9 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 public class RedisConfig {
 
     @Bean
-    RedisTemplate<Object, Object> RedisTemplate(RedisConnectionFactory factory) {
+    RedisTemplate<String, Object> jsonRedisTemplate(RedisConnectionFactory factory) {
         // GenericJackson2JsonRedisSerializer 序列化后待上全限定类名
-        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
         template.setDefaultSerializer(new Jackson2JsonRedisSerializer<>(Object.class));
         return template;

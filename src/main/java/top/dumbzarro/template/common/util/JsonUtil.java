@@ -37,5 +37,9 @@ public class JsonUtil {
         return objectMapper.convertValue(map, clazz);
     }
 
+    public static <T> T parse(String json, TypeReference<T> typeReference) {
+        return objectMapper.convertValue(json, typeReference);
+    }
+
 
 }
