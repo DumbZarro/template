@@ -23,8 +23,10 @@ public class AppConfig {
     @Value("classpath:keys/public-key.pem")
     Resource publicKeyRes;
 
-    @Value("${app.role.defaultId:123}")
+    @Value("${app.role.defaultId:1}")
     private Long defaultRoleId;
+    @Value("${app.role.defaultCode:DEFAULT}")
+    private String defaultRoleCode;
 
     @Value("${spring.mail.username}")
     private String mail;

@@ -11,7 +11,7 @@ public interface UserRoleRelRepository extends JpaRepository<UserRoleRelPo, Long
     @NativeQuery("""
             SELECT *
             FROM user_role_rel
-            WHERE  sys_deleted = FALSE
+            WHERE sys_deleted = FALSE
             AND user_id = :userId;
             """)
     List<UserRoleRelPo> queryByUserId(@Param("userId") Long userId);

@@ -16,10 +16,16 @@ import top.dumbzarro.template.common.enums.EnumColumnConverter;
 @Table(name = "t_user")
 public class UserPo extends SysPo {
 
+    /**
+     * oauth登陆时可以为空
+     */
     @Column(name = "email")
     private String email;
 
-    @Column(name = "password", nullable = false)
+    /**
+     * oauth登陆时可以为空
+     */
+    @Column(name = "password")
     private String password;
 
     @Column(name = "nickname", nullable = false)

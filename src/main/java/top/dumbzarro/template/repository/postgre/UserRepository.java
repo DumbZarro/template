@@ -5,8 +5,6 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.Param;
 import top.dumbzarro.template.repository.po.UserPo;
 
-import java.util.List;
-
 public interface UserRepository extends JpaRepository<UserPo, Long> {
     @NativeQuery("""
             SELECT *
@@ -15,6 +13,7 @@ public interface UserRepository extends JpaRepository<UserPo, Long> {
             AND email = :email
             LIMIT 1;
             """)
-    UserPo findByEmail(@Param("email") String email);
+    UserPo queryByEmail(@Param("email") String email);
 
+    UserPo findByEmail(String email);
 }
