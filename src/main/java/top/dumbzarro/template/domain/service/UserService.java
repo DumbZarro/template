@@ -8,7 +8,6 @@ import top.dumbzarro.template.common.biz.BizEnum;
 import top.dumbzarro.template.common.biz.BizException;
 import top.dumbzarro.template.config.AppConfig;
 import top.dumbzarro.template.domain.bo.UserBo;
-import top.dumbzarro.template.domain.security.oauth.OAuth2UserService;
 import top.dumbzarro.template.repository.po.RolePermRelPo;
 import top.dumbzarro.template.repository.po.UserOAuthRelPo;
 import top.dumbzarro.template.repository.po.UserPo;
@@ -18,10 +17,7 @@ import top.dumbzarro.template.repository.postgre.UserOAuthRelRepository;
 import top.dumbzarro.template.repository.postgre.UserRepository;
 import top.dumbzarro.template.repository.postgre.UserRoleRelRepository;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,6 +29,17 @@ public class UserService {
     private final UserRoleRelRepository userRoleRelRepository;
     private final RolePermRelRepository rolePermRelRepository;
     private final UserOAuthRelRepository userOAuthRelRepository;
+
+    public UserBo create(UserBo.OAuthInfo oauthInfo) {
+        UserPo userPo = createUserPo(oauthInfo);
+
+        UserBo userBo = new UserBo();
+        userBo.setOauthInfos(Collections.singletonList(oauthInfo));
+
+        assemble(userBo, userPo);
+
+        return userBo;
+    }
 
 
     public UserBo create(String email, String password, String name) {
@@ -48,30 +55,38 @@ public class UserService {
         userPo.setAccountStatus(UserPo.AccountStatus.UNVERIFY);
         UserPo savedUserPo = userRepository.save(userPo);
 
-        addDefaultRole(savedUserPo.getId());
-
         UserBo userBo = new UserBo();
+        userBo.setOauthInfos(Collections.emptyList());
+
+        assemble(userBo, savedUserPo);
+
+        return userBo;
+    }
+
+    private void assemble(UserBo userBo, UserPo savedUserPo) {
+        assembleUserBo(userBo, savedUserPo);
+        createUserOAuthRelPo(userBo);
+        addDefaultRole(userBo);
+    }
+
+
+    private void assembleUserBo(UserBo userBo, UserPo userPo) {
         userBo.setId(userBo.getId());
         userBo.setEmail(userPo.getEmail());
         userBo.setNickname(userPo.getNickname());
         userBo.setAvatarUrl(userPo.getAvatarUrl());
         userBo.setAccountStatus(userPo.getAccountStatus());
-        userBo.setRoles(getDefaultRoles());
-        userBo.setPerms(Collections.emptySet());
-        return userBo;
     }
 
+    public void addDefaultRole(UserBo userBo) {
+        userBo.setRoles(Set.of(appConfig.getDefaultRoleCode()));
+        userBo.setPerms(Collections.emptySet());
 
-    public void addDefaultRole(Long userId) {
         UserRoleRelPo userRoleRelPo = new UserRoleRelPo();
-        userRoleRelPo.setUserId(userId);
+        userRoleRelPo.setUserId(userBo.getId());
         userRoleRelPo.setRoleId(appConfig.getDefaultRoleId());
         userRoleRelPo.setRoleCode(appConfig.getDefaultRoleCode());
         userRoleRelRepository.save(userRoleRelPo);
-    }
-
-    public Set<String> getDefaultRoles() {
-        return Set.of(appConfig.getDefaultRoleCode());
     }
 
     public UserBo getUserBo(String email) {
@@ -90,14 +105,14 @@ public class UserService {
     private UserBo getUserBo(UserPo userPo) {
         // 设置基础信息
         UserBo userBo = new UserBo();
-        userBo.setId(userBo.getId());
-        userBo.setEmail(userPo.getEmail());
-        userBo.setNickname(userPo.getNickname());
-        userBo.setAvatarUrl(userPo.getAvatarUrl());
-        userBo.setAccountStatus(userPo.getAccountStatus());
+        assembleUserBo(userBo, userPo);
+        assembleRolePerm(userBo);
+        return userBo;
+    }
 
+    private void assembleRolePerm(UserBo userBo) {
         // 设置角色
-        List<UserRoleRelPo> userRoleRelPos = userRoleRelRepository.queryByUserId(userPo.getId());
+        List<UserRoleRelPo> userRoleRelPos = userRoleRelRepository.queryByUserId(userBo.getId());
         if (CollectionUtils.isEmpty(userRoleRelPos)) {
             throw new BizException(BizEnum.DATA_EXCEPTION, "用户角色数据异常");
         }
@@ -112,18 +127,30 @@ public class UserService {
             Set<String> perms = rolePermRelPos.stream().map(RolePermRelPo::getPermCode).collect(Collectors.toSet());
             userBo.setPerms(perms);
         }
-        return userBo;
     }
 
-    public UserOAuthRelPo createUserOAuthRelPo(Long userId, OAuth2UserService.OAuthInfo oauthInfo) {
+    public void createUserOAuthRelPo(UserBo userBo) {
+        if (CollectionUtils.isEmpty(userBo.getOauthInfos())) {
+            return;
+        }
+        UserBo.OAuthInfo oauthInfo = userBo.getOauthInfos().getFirst(); // 注册时只有一个
         UserOAuthRelPo userOAuthRelPo = new UserOAuthRelPo();
-        userOAuthRelPo.setUserId(userId);
+        userOAuthRelPo.setUserId(userBo.getId());
         userOAuthRelPo.setRegistration(oauthInfo.getRegistration());
         userOAuthRelPo.setProviderUserId(oauthInfo.getProviderUserId());
         userOAuthRelPo.setAccessToken(oauthInfo.getAccessToken());
         userOAuthRelPo.setRefreshToken(oauthInfo.getRefreshToken());
         userOAuthRelPo.setExpireTime(oauthInfo.getExpireTime());
         userOAuthRelPo.setScope(oauthInfo.getScope());
-        return userOAuthRelRepository.save(userOAuthRelPo);
+        userOAuthRelRepository.save(userOAuthRelPo);
+    }
+
+    public UserPo createUserPo(UserBo.OAuthInfo oauthInfo) {
+        // 设置用户默认值
+        UserPo userPo = new UserPo();
+        userPo.setNickname(Optional.ofNullable(oauthInfo.getNickName()).orElse("nickname_" + System.currentTimeMillis()));
+        userPo.setAvatarUrl(Optional.ofNullable(oauthInfo.getAvatarUrl()).orElse("https://api.dicebear.com/7.x/avataaars/svg?seed=" + userPo.getNickname()));
+        userPo.setAccountStatus(UserPo.AccountStatus.UNVERIFY);
+        return userRepository.save(userPo);
     }
 }

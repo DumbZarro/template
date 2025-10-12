@@ -1,6 +1,5 @@
 package top.dumbzarro.template.domain.security.oauth;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,7 +17,6 @@ import top.dumbzarro.template.repository.po.UserPo;
 import top.dumbzarro.template.repository.postgre.UserOAuthRelRepository;
 import top.dumbzarro.template.repository.postgre.UserRepository;
 
-import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -34,7 +32,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oauth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oauth2User.getAttributes();
 
-        OAuthInfo oauthInfo = assembleOAuthInfo(userRequest, attributes);
+        UserBo.OAuthInfo oauthInfo = assembleOAuthInfo(userRequest, attributes);
 
         // 判断之前是否已经通过oauth注册过
         UserOAuthRelPo existedUserOAuthRelPo = userOAuthRelRepository.findByRegistrationAndProviderUserId(oauthInfo.getRegistration(), oauthInfo.getProviderUserId());
@@ -53,19 +51,16 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             return new DefaultOAuth2User(authorities, attributes, oauthInfo.getNameAttributeKey());
         } else {
             // 注册流程
-            UserPo savedUserPo = createUserPo(oauthInfo);
-            userService.createUserOAuthRelPo(savedUserPo.getId(), oauthInfo);
-            userService.addDefaultRole(savedUserPo.getId());
-            Set<String> defaultRoles = userService.getDefaultRoles();
-            List<SimpleGrantedAuthority> authorities = defaultRoles.stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
+            UserBo userBo = userService.create(oauthInfo);
+            List<SimpleGrantedAuthority> authorities = userBo.getRoles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList();
             return new DefaultOAuth2User(authorities, attributes, oauthInfo.getNameAttributeKey());
         }
 
     }
 
-    private OAuthInfo assembleOAuthInfo(OAuth2UserRequest userRequest, Map<String, Object> attributes) {
+    private UserBo.OAuthInfo assembleOAuthInfo(OAuth2UserRequest userRequest, Map<String, Object> attributes) {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
-        OAuthInfo oauthInfo = new OAuthInfo();
+        UserBo.OAuthInfo oauthInfo = new UserBo.OAuthInfo();
         if (Objects.equals(registrationId, UserOAuthRelPo.Registration.GITHUB_USER_INFO.getId())) {
             oauthInfo.setNickName((String) attributes.get("name"));
             oauthInfo.setAvatarUrl((String) attributes.get("avatar_url"));
@@ -84,30 +79,6 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
             throw new OAuth2AuthenticationException("Unsupported OAuth2 registration");
         }
         return oauthInfo;
-    }
-
-
-    private UserPo createUserPo(OAuthInfo oauthInfo) {
-        // 设置用户默认值
-        UserPo userPo = new UserPo();
-        userPo.setNickname(Optional.ofNullable(oauthInfo.getNickName()).orElse("nickname_" + System.currentTimeMillis()));
-        userPo.setAvatarUrl(Optional.ofNullable(oauthInfo.getAvatarUrl()).orElse("https://api.dicebear.com/7.x/avataaars/svg?seed=" + userPo.getNickname()));
-        userPo.setAccountStatus(UserPo.AccountStatus.UNVERIFY);
-        return userRepository.save(userPo);
-    }
-
-
-    @Data
-    public static class OAuthInfo {
-        private String nickName;
-        private String avatarUrl;
-        private UserOAuthRelPo.Registration registration;
-        private String providerUserId;
-        private String accessToken;
-        private String refreshToken;
-        private Instant expireTime;
-        private String scope;
-        private String nameAttributeKey;
     }
 
 
