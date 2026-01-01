@@ -10,54 +10,77 @@ import java.util.concurrent.TimeUnit;
 public class NestedStopWatch {
     private final String name;
     private final TaskNode root;
-    private final Deque<TaskNode> subTaskStack;
+    private final Deque<TaskNode> taskStack;
 
     public NestedStopWatch(String name) {
         this.name = name;
         this.root = new TaskNode(name);
-        this.subTaskStack = new ArrayDeque<>();
+        this.taskStack = new ArrayDeque<>();
     }
 
     /**
      * 开始一个任务（可以嵌套）
      */
     public void start(String taskName) {
+        start(taskName, true);
+    }
+
+    public void start(String taskName, boolean recordAsDetail) {
         if (root.isStopped()) {
-            throw new IllegalStateException("计时器已经关闭");
+            throw new IllegalStateException("NestedStopWatch was finished");
         }
 
-        if (subTaskStack.size() >= 64) {
-            throw new IllegalStateException("超过64层嵌套限制 开启任务失败：" + taskName);
+        if (taskStack.size() >= 64) {
+            throw new IllegalStateException("nesting limit was exceeded. start [" + taskName + "] fail");
         }
 
-        TaskNode parent = subTaskStack.isEmpty() ? root : subTaskStack.peek();
+        TaskNode parent = taskStack.isEmpty() ? root : taskStack.peek();
         TaskNode child = new TaskNode(taskName);
-        parent.addChild(child);
-        subTaskStack.push(child);
+        if (recordAsDetail) {
+            parent.addChild(child);
+        }
+        taskStack.push(child);
     }
 
     /**
      * 停止当前任务
      */
-    public void stop() {
-        if (subTaskStack.isEmpty()) {
-            throw new IllegalStateException("没有可停止的任务");
+    public long stop() {
+        return stop(TimeUnit.MILLISECONDS);
+    }
+
+    public long stop(TimeUnit unit) {
+        unit = getOrDefaultUnit(unit);
+        if (taskStack.isEmpty()) {
+            throw new IllegalStateException("No stoppable task");
         }
-        subTaskStack.pop().stop();
+        TaskNode current = taskStack.pop();
+        current.stop();
+        return current.getDuration(unit);
     }
 
     /**
      * 停止当前任务-强校验
      */
-    public void stop(String expectStopTaskName) {
-        if (subTaskStack.isEmpty()) {
-            throw new IllegalStateException("没有可停止的任务");
-        }
-        if (!Objects.equals(subTaskStack.peek().name, expectStopTaskName)) {
-            throw new IllegalStateException("非法操作！期望暂停：" + expectStopTaskName + "，实际暂停：" + subTaskStack.peek().name);
-        }
-        subTaskStack.pop().stop();
+    public long stop(String taskName) {
+        return stop(taskName, TimeUnit.MILLISECONDS);
     }
+
+    public long stop(String taskName, TimeUnit unit) {
+        unit = getOrDefaultUnit(unit);
+        if (taskStack.isEmpty()) {
+            throw new IllegalStateException("No stoppable task");
+        }
+
+        TaskNode current = taskStack.peek();
+        if (!Objects.equals(current.name, taskName)) {
+            throw new IllegalStateException("expect:" + taskName + ",actual" + current.name);
+        }
+        taskStack.pop();
+        current.stop();
+        return current.getDuration(unit);
+    }
+
 
     /**
      * 结束整个计时器，不可再开启计时
@@ -66,7 +89,7 @@ public class NestedStopWatch {
         if (isFinished()) {
             return;
         }
-        while (!subTaskStack.isEmpty()) {
+        while (!taskStack.isEmpty()) {
             stop();
         }
         root.stop();
@@ -99,20 +122,18 @@ public class NestedStopWatch {
         return root.getDurationMinutes();
     }
 
-    public String summary() {
-        return this.summary(TimeUnit.MILLISECONDS);
+    public String shortSummary() {
+        return shortSummary(TimeUnit.MILLISECONDS);
     }
 
-    public String summary(TimeUnit unit) {
-        if (null == unit) {
-            unit = TimeUnit.MILLISECONDS;
-        }
 
-        return String.format("StopWatch '%s': running time = %d %s", this.name, this.getTotal(unit), getShotUnitName(unit));
+    public String shortSummary(TimeUnit unit) {
+        unit = getOrDefaultUnit(unit);
+        return String.format("StopWatch[%s] done in %d %s", name, getTotal(unit), getShotUnitName(unit));
     }
 
     public String prettyPrint() {
-        return this.prettyPrint(TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS);
+        return prettyPrint(TimeUnit.MILLISECONDS, TimeUnit.MILLISECONDS);
     }
 
 
@@ -120,7 +141,7 @@ public class NestedStopWatch {
      * 格式化输出（树状结构）
      */
     public String prettyPrint(TimeUnit summaryUnit, TimeUnit detailUnit) {
-        StringBuilder sb = new StringBuilder(this.summary(summaryUnit));
+        StringBuilder sb = new StringBuilder(shortSummary(summaryUnit));
         sb.append("\n");
         printDetail(detailUnit, sb, root, "", true, true);
         return sb.toString();
@@ -131,9 +152,7 @@ public class NestedStopWatch {
      * 递归打印节点（树状结构）
      */
     private void printDetail(TimeUnit unit, StringBuilder sb, TaskNode node, String prefix, boolean isRoot, boolean isLast) {
-        if (null == unit) {
-            unit = TimeUnit.MILLISECONDS;
-        }
+        unit = getOrDefaultUnit(unit);
         if (!isRoot) {
             sb.append(prefix);
             sb.append(isLast ? "└── " : "├── ");
@@ -157,26 +176,35 @@ public class NestedStopWatch {
     }
 
     private static String getShotUnitName(TimeUnit unit) {
-        return switch (unit) {
-            case NANOSECONDS -> "ns";
-            case MICROSECONDS -> "μs";
-            case MILLISECONDS -> "ms";
-            case SECONDS -> "s";
-            case MINUTES -> "min";
-            case HOURS -> "h";
-            default -> unit.name().toLowerCase();
-        };
+        switch (unit) {
+            case NANOSECONDS:
+                return "ns";
+            case MICROSECONDS:
+                return "μs";
+            case MILLISECONDS:
+                return "ms";
+            case SECONDS:
+                return "s";
+            case MINUTES:
+                return "min";
+            case HOURS:
+                return "h";
+            default:
+                return unit.name().toLowerCase();
+        }
+    }
+
+    private TimeUnit getOrDefaultUnit(TimeUnit unit) {
+        return null == unit ? TimeUnit.MILLISECONDS : unit;
     }
 
     public AutoCloseable startScoped(String taskName) {
         start(taskName);
-        return this::stop;
+        return () -> stop(taskName);
     }
 
     public Map<String, Object> toMap(TimeUnit unit) {
-        if (unit == null) {
-            unit = TimeUnit.MILLISECONDS;
-        }
+        unit = getOrDefaultUnit(unit);
         return toMap(root, unit);
     }
 
@@ -219,12 +247,12 @@ public class NestedStopWatch {
 
         public void addChild(TaskNode child) {
             child.parent = this;
-            this.children.add(child);
+            children.add(child);
         }
 
         public void stop() {
             if (endTimeNanos == 0) {
-                this.endTimeNanos = System.nanoTime();
+                endTimeNanos = System.nanoTime();
             }
         }
 
